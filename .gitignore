@@ -1,0 +1,36 @@
+# Data files (tracked by DVC instead)
+data/*.csv
+data/*.parquet
+
+# Model binaries (tracked by DVC)
+models/*.joblib
+models/*.pkl
+models/*.h5
+
+# MLflow artifacts and database
+mlflow.db
+mlruns/
+.mlflow/
+
+# Environment and cache
+.env
+.venv/
+venv/
+env/
+*.pyc
+__pycache__/
+.pytest_cache/
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# DVC cache (local only)
+.dvc/cache
+
+# Temporary files
+*.tmp
+temp/

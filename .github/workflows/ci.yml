@@ -1,0 +1,80 @@
+name: Fraud Detection MLOps CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        cache: 'pip'
+    
+    - name: Install System Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libgomp1
+        
+    - name: Install Python Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -e .
+        
+    - name: Generate Mock Datasets
+      run: |
+        python3 data/generate_mock_data.py
+        
+    - name: Pre-train Validation Tests
+      run: |
+        pytest tests/ -k "test_dataset_generation" -v
+        
+    - name: Detect Pipeline Changes (Code/Data)
+      id: changes
+      run: |
+        # Check if code, training scripts, params, or DVC descriptors have changed
+        if [ -z "${{ github.event.before }}" ] || [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
+          git diff --name-only HEAD~1 HEAD > changed_files.txt || echo "model_training/train_model.py" > changed_files.txt
+        else
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }} > changed_files.txt || echo "model_training/train_model.py" > changed_files.txt
+        fi
+        cat changed_files.txt
+        
+        if grep -E '(model_training/|config/|data/.*\.dvc|fraud_detection_service/)' changed_files.txt; then
+          echo "should_retrain=true" >> $GITHUB_OUTPUT
+          echo "Pipeline modifications detected. Triggering model retraining."
+        else
+          echo "should_retrain=false" >> $GITHUB_OUTPUT
+          echo "No pipeline modifications detected. Skipping retraining."
+        fi
+        
+    - name: Execute Model Retraining
+      if: steps.changes.outputs.should_retrain == 'true' || github.event_name == 'workflow_dispatch'
+      run: |
+        # Execute training pipeline
+        python3 model_training/train_model.py
+        echo "✓ Model retraining successfully executed."
+        
+    - name: Post-train Validation & Integration Tests
+      run: |
+        # Run all test suites including inference endpoints
+        pytest tests/ -v --cov=fraud_detection_service --cov-report=xml
+        
+    - name: Upload Test Coverage Artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-reports
+        path: coverage.xml

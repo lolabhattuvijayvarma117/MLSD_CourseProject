@@ -1,0 +1,28 @@
+stages:
+  train:
+    cmd: python3 model_training/train_model.py
+    deps:
+      - model_training/train_model.py
+      - data/train_transaction.csv
+      - data/train_identity.csv
+    params:
+      - data.train_transaction_path
+      - data.train_identity_path
+      - data.test_size
+      - data.random_state
+      - data.missing_threshold
+      - train.n_estimators
+      - train.max_depth
+      - train.learning_rate
+      - train.subsample
+      - train.colsample_bytree
+      - train.tree_method
+      - train.n_jobs
+      - model.output_dir
+      - model.model_name
+      - model.feature_names
+      - model.metadata_name
+    outs:
+      - models/champion_model.joblib
+      - models/feature_names.json
+      - models/champion_metadata.json

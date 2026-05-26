@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  fraud-detection-api:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+    container_name: fraud-detection-api
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ../models:/app/models
+      - ../data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  mlflow-server:
+    image: ghcr.io/mlflow/mlflow:v2.12.1
+    container_name: mlflow-server
+    ports:
+      - "5001:5001"
+    volumes:
+      - ../mlruns:/mlflow
+    # Set default SQLite database storage tracking backend inside volume
+    command: mlflow server --host 0.0.0.0 --port 5001 --backend-store-uri sqlite:///mlflow/mlflow.db --artifacts-destination /mlflow/artifacts --default-artifact-root /mlflow/artifacts

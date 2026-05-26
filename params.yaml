@@ -1,0 +1,21 @@
+data:
+  train_transaction_path: "data/train_transaction.csv"
+  train_identity_path: "data/train_identity.csv"
+  test_size: 0.2
+  random_state: 42
+  missing_threshold: 0.90
+
+train:
+  n_estimators: 300
+  max_depth: 6
+  learning_rate: 0.05
+  subsample: 0.8
+  colsample_bytree: 0.8
+  tree_method: "hist"
+  n_jobs: -1
+
+model:
+  output_dir: "models"
+  model_name: "champion_model.joblib"
+  feature_names: "feature_names.json"
+  metadata_name: "champion_metadata.json"

@@ -1,0 +1,14 @@
+{
+  "auc_roc": 0.9302,
+  "pr_auc": 0.6298,
+  "optimal_threshold": 0.83,
+  "n_features": 375,
+  "train_samples": 472432,
+  "test_samples": 118108,
+  "confusion_matrix": {
+    "tn": 112884,
+    "fp": 1091,
+    "fn": 1896,
+    "tp": 2237
+  }
+}
